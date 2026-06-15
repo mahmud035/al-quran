@@ -1,11 +1,12 @@
 import { ProgressBar } from '@/features/player/ProgressBar';
 import { ReciterSelect } from '@/features/player/ReciterSelect';
+import { VolumeControl } from '@/features/player/VolumeControl';
 import { usePlayer } from '@/features/player/usePlayer';
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react';
 
 /** Persistent bottom audio bar — renders only once a surah is loaded. */
 export function PlayerBar() {
-  const { state, togglePlay, next, prev, seek, setReciter } = usePlayer();
+  const { state, togglePlay, next, prev, seek, setReciter, setVolume } = usePlayer();
 
   if (state.currentSurah === null || state.playlist.length === 0) return null;
 
@@ -14,8 +15,10 @@ export function PlayerBar() {
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200/60 bg-white/80 backdrop-blur-md dark:border-slate-700/60 dark:bg-slate-900/80">
-      <div className="mx-auto flex max-w-4xl flex-col gap-2 px-4 py-3">
-        <div className="flex items-center gap-3">
+      <div className="mx-auto flex max-w-4xl flex-col gap-2 px-3 py-2 sm:px-4 sm:py-3">
+        <ProgressBar currentTime={state.currentTime} duration={state.duration} onSeek={seek} />
+
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={prev}
             aria-label="Previous ayah"
@@ -40,19 +43,24 @@ export function PlayerBar() {
             <SkipForward className="h-5 w-5" />
           </button>
 
-          <div className="ml-1 hidden text-sm text-stone-600 dark:text-slate-300 sm:block">
+          {/* Position label: full text on sm+, compact on mobile */}
+          <div className="ml-1 hidden whitespace-nowrap text-sm text-stone-600 dark:text-slate-300 md:block">
             Surah {state.currentSurah}{' '}
             <span className="text-stone-400 dark:text-slate-500">
               • Ayah {position}/{total}
             </span>
           </div>
+          <div className="ml-1 whitespace-nowrap text-xs tabular-nums text-stone-500 dark:text-slate-400 md:hidden">
+            {position}/{total}
+          </div>
 
-          <div className="ml-auto">
-            <ReciterSelect value={state.reciter} onChange={setReciter} />
+          <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
+            <VolumeControl volume={state.volume} onChange={setVolume} />
+            <div className="min-w-0 max-w-[40vw] sm:max-w-none">
+              <ReciterSelect value={state.reciter} onChange={setReciter} />
+            </div>
           </div>
         </div>
-
-        <ProgressBar currentTime={state.currentTime} duration={state.duration} onSeek={seek} />
       </div>
     </div>
   );

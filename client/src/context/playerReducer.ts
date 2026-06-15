@@ -8,6 +8,8 @@ export interface PlayerState {
   duration: number;
   currentTime: number;
   reciter: Reciter;
+  /** Playback volume, 0..1. */
+  volume: number;
   /** 128/64kbps CDN URLs, one per ayah. */
   playlist: string[];
   /** Global ayah numbers backing the playlist (kept so we can rebuild on reciter switch). */
@@ -23,6 +25,7 @@ export type PlayerAction =
   | { type: 'PREV' }
   | { type: 'SET_TIME'; currentTime: number; duration: number }
   | { type: 'SET_RECITER'; reciter: Reciter; playlist: string[] }
+  | { type: 'SET_VOLUME'; volume: number }
   | { type: 'STOP' };
 
 export const initialPlayerState: PlayerState = {
@@ -32,6 +35,7 @@ export const initialPlayerState: PlayerState = {
   duration: 0,
   currentTime: 0,
   reciter: DEFAULT_RECITER,
+  volume: 1,
   playlist: [],
   globalAyahNumbers: [],
 };
@@ -71,6 +75,8 @@ export function playerReducer(state: PlayerState, action: PlayerAction): PlayerS
       return { ...state, currentTime: action.currentTime, duration: action.duration };
     case 'SET_RECITER':
       return { ...state, reciter: action.reciter, playlist: action.playlist };
+    case 'SET_VOLUME':
+      return { ...state, volume: Math.min(1, Math.max(0, action.volume)) };
     case 'STOP':
       return { ...state, isPlaying: false, currentAyahIndex: 0, currentTime: 0 };
     default:

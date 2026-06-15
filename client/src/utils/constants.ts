@@ -13,8 +13,11 @@ export const AUDIO_CDN = 'https://cdn.islamic.network/quran/audio';
  */
 export const RECITER_BITRATE: Record<Reciter, 128 | 64> = {
   'ar.alafasy': 128,
-  'ar.abdulsamad': 64,
+  'ar.mahermuaiqly': 128,
   'ar.abdullahbasfar': 64,
+  'ar.saoodshuraym': 64,
+  'ar.abdurrahmaansudais': 64,
+  'ar.hanirifai': 64,
 };
 
 // Default editions for the multi-edition reader fetch.
@@ -23,8 +26,11 @@ export const EDITION_TRANSLITERATION = 'en.transliteration';
 
 export const RECITERS: { value: Reciter; label: string }[] = [
   { value: 'ar.alafasy', label: 'Mishary Alafasy' },
-  { value: 'ar.abdulsamad', label: 'Abdul Basit (Abdul Samad)' },
   { value: 'ar.abdullahbasfar', label: 'Abdullah Basfar' },
+  { value: 'ar.saoodshuraym', label: 'Saud Al-Shuraim' },
+  { value: 'ar.abdurrahmaansudais', label: 'Abdurrahman Al-Sudais' },
+  { value: 'ar.hanirifai', label: 'Hani Ar-Rifai' },
+  { value: 'ar.mahermuaiqly', label: 'Maher Al-Muaiqly' },
 ];
 
 export const TRANSLATIONS: { value: TranslationEdition; label: string }[] = [

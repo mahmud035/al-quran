@@ -61,8 +61,11 @@ sync require an account. Guests fall back to `localStorage`.
 
 ## Notes
 
-- Reciter audio bitrate varies on the CDN: only `ar.alafasy` is published at 128kbps;
-  `ar.abdulsamad` and `ar.abdullahbasfar` exist only at 64kbps. See
-  `client/src/utils/constants.ts` (`RECITER_BITRATE`).
+- Reciter audio bitrate varies on the CDN: `ar.alafasy` and `ar.mahermuaiqly` are
+  published at 128kbps; the other reciters exist only at 64kbps. See
+  `client/src/utils/constants.ts` (`RECITER_BITRATE`). Reciters are limited to those
+  present in AlQuran.cloud's per-ayah audio catalog.
+- Search filters the surah list by name, meaning, or number (client-side); it does not
+  full-text search translations.
 - Bismillah renders as a header for every surah except Al-Fatiha (1, where it is ayah 1)
   and At-Tawba (9, which has none).

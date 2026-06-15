@@ -26,6 +26,7 @@ export interface PlayerContextValue {
   prev: () => void;
   seek: (time: number) => void;
   setReciter: (reciter: Reciter) => void;
+  setVolume: (volume: number) => void;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -57,6 +58,12 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     if (state.isPlaying) audio.play().catch(() => undefined);
     else audio.pause();
   }, [state.isPlaying]);
+
+  // Reflect volume onto the element (persists across src changes).
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (audio) audio.volume = state.volume;
+  }, [state.volume]);
 
   const playSurah = useCallback(
     (surah: number, globalAyahNumbers: number[]) => {
@@ -112,9 +119,13 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     [state.globalAyahNumbers],
   );
 
+  const setVolume = useCallback((volume: number) => {
+    dispatch({ type: 'SET_VOLUME', volume });
+  }, []);
+
   const value = useMemo<PlayerContextValue>(
-    () => ({ state, playSurah, playAyah, togglePlay, next, prev, seek, setReciter }),
-    [state, playSurah, playAyah, togglePlay, next, prev, seek, setReciter],
+    () => ({ state, playSurah, playAyah, togglePlay, next, prev, seek, setReciter, setVolume }),
+    [state, playSurah, playAyah, togglePlay, next, prev, seek, setReciter, setVolume],
   );
 
   return (

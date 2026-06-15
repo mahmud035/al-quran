@@ -1,6 +1,12 @@
 import { Document, Model, Types } from 'mongoose';
 
-export type Reciter = 'ar.alafasy' | 'ar.abdulsamad' | 'ar.abdullahbasfar';
+export type Reciter =
+  | 'ar.alafasy'
+  | 'ar.abdullahbasfar'
+  | 'ar.saoodshuraym'
+  | 'ar.abdurrahmaansudais'
+  | 'ar.hanirifai'
+  | 'ar.mahermuaiqly';
 export type TranslationEdition = 'en.pickthall' | 'bn.bengali';
 export type FontSize = 'sm' | 'md' | 'lg' | 'xl';
 export type Theme = 'light' | 'dark';
@@ -21,7 +27,14 @@ export interface IUserSettingsDocument extends IUserSettings, Document {
 
 export type IUserSettingsModel = Model<IUserSettingsDocument>;
 
-export const RECITERS: Reciter[] = ['ar.alafasy', 'ar.abdulsamad', 'ar.abdullahbasfar'];
+export const RECITERS: Reciter[] = [
+  'ar.alafasy',
+  'ar.abdullahbasfar',
+  'ar.saoodshuraym',
+  'ar.abdurrahmaansudais',
+  'ar.hanirifai',
+  'ar.mahermuaiqly',
+];
 export const TRANSLATION_EDITIONS: TranslationEdition[] = ['en.pickthall', 'bn.bengali'];
 export const FONT_SIZES: FontSize[] = ['sm', 'md', 'lg', 'xl'];
 export const THEMES: Theme[] = ['light', 'dark'];

@@ -33,23 +33,3 @@ export interface SurahEdition extends Omit<SurahMeta, never> {
   ayahs: Ayah[];
   edition: EditionInfo;
 }
-
-/** A single result from GET /search/{keyword}/all/{edition}. */
-export interface SearchMatch {
-  number: number; // global ayah number
-  text: string;
-  numberInSurah: number;
-  surah: {
-    number: number;
-    name: string;
-    englishName: string;
-    englishNameTranslation: string;
-    revelationType: string;
-  };
-  edition: EditionInfo;
-}
-
-export interface SearchResponse {
-  count: number;
-  matches: SearchMatch[];
-}

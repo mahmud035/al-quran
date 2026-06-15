@@ -25,7 +25,13 @@ export interface Bookmark {
   updatedAt: string;
 }
 
-export type Reciter = 'ar.alafasy' | 'ar.abdulsamad' | 'ar.abdullahbasfar';
+export type Reciter =
+  | 'ar.alafasy'
+  | 'ar.abdullahbasfar'
+  | 'ar.saoodshuraym'
+  | 'ar.abdurrahmaansudais'
+  | 'ar.hanirifai'
+  | 'ar.mahermuaiqly';
 export type TranslationEdition = 'en.pickthall' | 'bn.bengali';
 export type FontSize = 'sm' | 'md' | 'lg' | 'xl';
 export type Theme = 'light' | 'dark';

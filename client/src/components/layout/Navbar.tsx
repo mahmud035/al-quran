@@ -22,9 +22,13 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-stone-200 bg-white/80 backdrop-blur dark:border-slate-700 dark:bg-slate-900/80">
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
-        <Link to="/" className="flex items-center gap-2 text-primary dark:text-emerald-300">
-          <BookOpen className="h-6 w-6" />
-          <span className="text-lg font-bold">Quran Mazid</span>
+        <Link
+          to="/"
+          aria-label="Quran Mazid home"
+          className="flex shrink-0 items-center gap-2 text-primary dark:text-emerald-300"
+        >
+          <BookOpen className="h-6 w-6 shrink-0" />
+          <span className="hidden whitespace-nowrap text-lg font-bold sm:inline">Quran Mazid</span>
         </Link>
 
         <div className="flex items-center gap-1 sm:gap-2">
