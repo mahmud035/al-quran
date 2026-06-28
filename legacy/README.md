@@ -1,10 +1,10 @@
-# Quran Mazid - API
+# Al Quran
 
-- **Live Site URL**: [Quran Mazid](https://quran-mazid-app.netlify.app/)
+- **Live Site URL**: [Al Quran ](https://lab-quran.halalaura.co.uk/)
 
 ## Description
 
-This repository contains the code for the Quran Mazid API and a responsive website. The application provides easy access to the Holy Quran's text, translations, and tafsir (exegesis). The website is built using HTML, CSS, and JavaScript to offer a comprehensive and user-friendly resource for Islamic studies and personal use.
+This repository contains the code for the Al Quran and a responsive website. The application provides easy access to the Holy Quran's text, translations, and tafsir (exegesis). The website is built using HTML, CSS, and JavaScript to offer a comprehensive and user-friendly resource for Islamic studies and personal use.
 
 ## Features
 

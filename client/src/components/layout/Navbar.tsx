@@ -24,11 +24,13 @@ export function Navbar() {
       <nav className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4">
         <Link
           to="/"
-          aria-label="Quran Mazid home"
+          aria-label="Al Quran home"
           className="flex shrink-0 items-center gap-2 text-primary dark:text-emerald-300"
         >
           <BookOpen className="h-6 w-6 shrink-0" />
-          <span className="hidden whitespace-nowrap text-lg font-bold sm:inline">Quran Mazid</span>
+          <span className="hidden whitespace-nowrap text-lg font-bold sm:inline">
+            Al Quran
+          </span>
         </Link>
 
         <div className="flex items-center gap-1 sm:gap-2">

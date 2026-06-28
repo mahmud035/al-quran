@@ -1,7 +1,7 @@
 {
   "name": "quran-mazid-server",
   "version": "1.0.0",
-  "description": "Quran Mazid backend — auth, bookmarks, settings (user data only)",
+  "description": "Al Quran backend — auth, bookmarks, settings (user data only)",
   "main": "dist/server.js",
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",

@@ -1,4 +1,4 @@
-# Quran Mazid — MERN Rebuild
+# Al Quran — MERN Rebuild
 
 A modern Quran reader: browse all 114 surahs, read Arabic + transliteration +
 translation, listen with per-ayah audio, search, and bookmark. Rebuilt from a 2022
@@ -11,10 +11,10 @@ TanStack Query. Per-ayah audio streams from the Islamic Network CDN. The backend
 
 ## Stack
 
-| | |
-|---|---|
+|             |                                                                                                          |
+| ----------- | -------------------------------------------------------------------------------------------------------- |
 | **client/** | React 19 · TypeScript · Vite · Tailwind v4 · React Router v7 · TanStack Query v5 · React-Hook-Form + Zod |
-| **server/** | Express · TypeScript · Mongoose · MongoDB Atlas · JWT (HTTP-only cookie) · Zod |
+| **server/** | Express · TypeScript · Mongoose · MongoDB Atlas · JWT (HTTP-only cookie) · Zod                           |
 
 ## Project layout
 
@@ -27,6 +27,7 @@ legacy/   the original 2022 static site (reference only)
 ## Running locally
 
 **Backend** (port 5000):
+
 ```bash
 cd server
 cp .env.example .env      # set MONGODB_URI (Atlas) and JWT_SECRET
@@ -35,6 +36,7 @@ npm run dev
 ```
 
 **Frontend** (port 5173):
+
 ```bash
 cd client
 npm install
