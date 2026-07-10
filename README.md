@@ -29,7 +29,7 @@ legacy/   the original 2022 static site (reference only)
 ## Running locally
 
 ```bash
-git clone https://github.com/mahmud035/quran-mazid--api.git al-quran
+git clone https://github.com/mahmud035/al-quran.git
 cd al-quran
 ```
 
