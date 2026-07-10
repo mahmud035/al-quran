@@ -1,5 +1,7 @@
 # Al Quran — MERN Rebuild
 
+🔗 **Live:** [lab-quran.halalaura.co.uk](https://lab-quran.halalaura.co.uk) · **API:** [lab-quran-api.halalaura.co.uk/api](https://lab-quran-api.halalaura.co.uk/api)
+
 A modern Quran reader: browse all 114 surahs, read Arabic + transliteration +
 translation, listen with per-ayah audio, search, and bookmark. Rebuilt from a 2022
 vanilla HTML/CSS/JS app (preserved in [`legacy/`](./legacy)) into a full MERN stack.
@@ -25,6 +27,11 @@ legacy/   the original 2022 static site (reference only)
 ```
 
 ## Running locally
+
+```bash
+git clone https://github.com/mahmud035/quran-mazid--api.git al-quran
+cd al-quran
+```
 
 **Backend** (port 5000):
 
@@ -60,6 +67,17 @@ PUT    /api/settings                          (auth)
 
 Unauthenticated users can read and listen fully; bookmarks and cross-device settings
 sync require an account. Guests fall back to `localStorage`.
+
+## Deployment
+
+Both services are containerized and deployed automatically via GitHub Actions on push to `master`:
+
+- **Path-filtered builds** — the workflow diffs the push and rebuilds only the service (`client/` or `server/`) that actually changed (both on first push or manual dispatch).
+- **Images → GHCR** — `ghcr.io/mahmud035/quran-client` (Vite build served by nginx) and `ghcr.io/mahmud035/quran-server` (`tsc` → Node), tagged `latest` + commit SHA, with GitHub Actions layer caching.
+- **Release** — each image push triggers a Coolify deploy webhook, followed by a Discord notification.
+- **nginx** (`client/default.conf`) serves the SPA with a React Router fallback, a `/health` probe for container/Coolify checks, and immutable caching for Vite's fingerprinted assets.
+
+The frontend's `VITE_API_URL` is baked at build time (pointing at the live API above).
 
 ## Notes
 
