@@ -8,10 +8,22 @@ export interface LastRead {
   ayahNumber: number;
 }
 
+function isLastRead(value: unknown): value is LastRead {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    typeof (value as LastRead).surahNumber === 'number' &&
+    typeof (value as LastRead).surahName === 'string' &&
+    typeof (value as LastRead).ayahNumber === 'number'
+  );
+}
+
 export function getLastRead(): LastRead | null {
   try {
     const raw = window.localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as LastRead) : null;
+    if (!raw) return null;
+    const parsed: unknown = JSON.parse(raw);
+    return isLastRead(parsed) ? parsed : null;
   } catch {
     return null;
   }
