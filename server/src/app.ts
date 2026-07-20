@@ -5,6 +5,7 @@ import { config } from './config';
 import { globalErrorHandler } from './middlewares/globalErrorHandler';
 import { authRoutes } from './modules/auth/auth.route';
 import { bookmarksRoutes } from './modules/bookmarks/bookmarks.route';
+import { progressRoutes } from './modules/progress/progress.route';
 import { settingsRoutes } from './modules/settings/settings.route';
 
 const app = express();
@@ -39,6 +40,7 @@ app.get('/api/health', (_req: Request, res: Response) => {
 
 app.use('/api/auth', authRoutes);
 app.use('/api/bookmarks', bookmarksRoutes);
+app.use('/api/progress', progressRoutes);
 app.use('/api/settings', settingsRoutes);
 
 // 404 for unmatched API routes.
