@@ -25,6 +25,29 @@ export interface Bookmark {
   updatedAt: string;
 }
 
+/** Where the user resumes reading. Mirrors server ILastRead. */
+export interface LastReadPosition {
+  surahNumber: number;
+  surahName: string;
+  ayahNumber: number;
+  updatedAt: string;
+}
+
+/** Mirrors server ProgressResponse. */
+export interface UserProgress {
+  /** Base64 of the 780-byte coverage bitmap. */
+  coverage: string;
+  khatmahPercent: number;
+  streak: {
+    /** Display streak: already zeroed server-side when the streak has lapsed. */
+    current: number;
+    longest: number;
+    /** Date-only 'YYYY-MM-DD', or null when the user has never read. */
+    lastActiveDay: string | null;
+  };
+  lastRead: LastReadPosition | null;
+}
+
 export type Reciter =
   | 'ar.alafasy'
   | 'ar.abdullahbasfar'

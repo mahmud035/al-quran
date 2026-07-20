@@ -8,6 +8,7 @@ import { usePlayer } from '@/features/player/usePlayer';
 import { AyahCard } from '@/features/surahs/AyahCard';
 import { useSurah } from '@/features/surahs/useSurah';
 import { useSettings } from '@/features/settings/useSettings';
+import { DWELL_MS } from '@/utils/constants';
 import { setLastRead } from '@/utils/lastRead';
 import { Play } from 'lucide-react';
 import { useEffect, useRef } from 'react';
@@ -19,7 +20,17 @@ function showBismillah(surahNumber: number): boolean {
   return surahNumber !== 1 && surahNumber !== 9;
 }
 
-export function SurahReader({ surahNumber }: { surahNumber: number }) {
+interface SurahReaderProps {
+  surahNumber: number;
+  /**
+   * Called with a global ayah number once that ayah has held the reading zone long
+   * enough to count as read. Optional so the reader works standalone; the page wires
+   * it to progress recording.
+   */
+  onAyahRead?: (globalAyahNumber: number) => void;
+}
+
+export function SurahReader({ surahNumber, onAyahRead }: SurahReaderProps) {
   const { preferences, updatePreferences } = useSettings();
   const player = usePlayer();
   const { data: surah, isLoading, isError, refetch } = useSurah(
@@ -49,23 +60,65 @@ export function SurahReader({ surahNumber }: { surahNumber: number }) {
     };
   }, [surahNumber]);
 
+  // Keep the callback in a ref so the observer effect does not re-run (and re-observe
+  // every node) when the parent hands down a new function identity.
+  const onAyahReadRef = useRef(onAyahRead);
+  useEffect(() => {
+    onAyahReadRef.current = onAyahRead;
+  }, [onAyahRead]);
+
   // Observe ayah cards to know which one is being read.
+  //
+  // The same observer drives two things: the last-read position (immediately) and
+  // progress recording (after a dwell). An ayah only counts as read once it has held
+  // the zone continuously for DWELL_MS, so scrolling past does not credit it. Audio
+  // autoscroll moves ayahs into this same zone, so listening qualifies on this path
+  // too, which is intended.
   useEffect(() => {
     if (!surah) return;
+
+    const dwellTimers = new Map<number, number>();
+
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
+          const el = entry.target as HTMLElement;
+          const globalNumber = Number(el.dataset.globalAyah);
+
           if (entry.isIntersecting) {
-            const n = Number((entry.target as HTMLElement).dataset.ayah);
+            const n = Number(el.dataset.ayah);
             if (n) currentAyahRef.current = n;
+
+            // Already counting down for this ayah — leave the existing timer alone.
+            if (globalNumber && !dwellTimers.has(globalNumber)) {
+              const timer = window.setTimeout(() => {
+                dwellTimers.delete(globalNumber);
+                onAyahReadRef.current?.(globalNumber);
+              }, DWELL_MS);
+              dwellTimers.set(globalNumber, timer);
+            }
+          } else if (globalNumber) {
+            // Left the zone before qualifying: discard the partial dwell so a later
+            // visit has to earn the full duration again.
+            const timer = dwellTimers.get(globalNumber);
+            if (timer !== undefined) {
+              window.clearTimeout(timer);
+              dwellTimers.delete(globalNumber);
+            }
           }
         }
       },
       { rootMargin: '-20% 0px -70% 0px' },
     );
+
     const nodes = document.querySelectorAll<HTMLElement>('[data-ayah]');
     nodes.forEach((node) => observer.observe(node));
-    return () => observer.disconnect();
+
+    return () => {
+      observer.disconnect();
+      dwellTimers.forEach((timer) => window.clearTimeout(timer));
+      dwellTimers.clear();
+    };
   }, [surah]);
 
   // Scroll to a deep-linked ayah (#ayah-N) once data has rendered.
@@ -138,7 +191,11 @@ export function SurahReader({ surahNumber }: { surahNumber: number }) {
 
       <div className="flex flex-col gap-4">
         {surah.ayahs.map((ayah, index) => (
-          <div key={ayah.numberInSurah} data-ayah={ayah.numberInSurah}>
+          <div
+            key={ayah.numberInSurah}
+            data-ayah={ayah.numberInSurah}
+            data-global-ayah={ayah.globalNumber}
+          >
             <AyahCard
               ayah={ayah}
               surahNumber={surahNumber}

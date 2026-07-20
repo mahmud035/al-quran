@@ -51,16 +51,16 @@ No client work begins until this gate is green.
 
 ## 4. Client progress feature
 
-- [ ] 4.1 Create `client/src/features/progress/` mirroring the backend domain, with types matching the API response so contract drift breaks at compile time
-- [ ] 4.2 Add `useProgress.ts` — TanStack Query hook fetching progress, passing the client's timezone from `Intl.DateTimeFormat().resolvedOptions().timeZone`
-- [ ] 4.3 Add `readingBuffer.ts` — a pending `Set` of global ayah numbers mirrored to local storage, with a size bound that drops oldest entries rather than blocking new ones
-- [ ] 4.4 Add `useRecordReading.ts` — flush on a 15-second interval while entries are pending, on `visibilitychange` to hidden, and on reader unmount
-- [ ] 4.5 Implement the `pagehide` flush with `navigator.sendBeacon` and a JSON `Blob`, relying on the auth cookie being sent automatically
-- [ ] 4.6 Recover and send any mirrored pending ayahs on app load, before accepting new ones
-- [ ] 4.7 Invalidate the progress query after a successful flush so streak and percentage stay current
-- [ ] 4.8 Make the whole recording path inert for unauthenticated users — no buffering, no mirror writes, no requests (design D10)
-- [ ] 4.9 Add dwell tracking to `SurahReader` on the existing `IntersectionObserver`: an ayah qualifies after 2 continuous seconds in the reading zone, with the timer cleared when it leaves
-- [ ] 4.10 Add `DWELL_MS` to `client/src/utils/constants.ts` as a single named constant, since it is the tuning point called out in the design risks
+- [x] 4.1 Create `client/src/features/progress/` mirroring the backend domain, with types matching the API response so contract drift breaks at compile time
+- [x] 4.2 Add `useProgress.ts` — TanStack Query hook fetching progress, passing the client's timezone from `Intl.DateTimeFormat().resolvedOptions().timeZone`
+- [x] 4.3 Add `readingBuffer.ts` — a pending `Set` of global ayah numbers mirrored to local storage, with a size bound that drops oldest entries rather than blocking new ones
+- [x] 4.4 Add `useRecordReading.ts` — flush on a 15-second interval while entries are pending, on `visibilitychange` to hidden, and on reader unmount
+- [x] 4.5 Implement the `pagehide` flush with `navigator.sendBeacon` and a JSON `Blob`, relying on the auth cookie being sent automatically
+- [x] 4.6 Recover and send any mirrored pending ayahs on app load, before accepting new ones
+- [x] 4.7 Invalidate the progress query after a successful flush so streak and percentage stay current
+- [x] 4.8 Make the whole recording path inert for unauthenticated users — no buffering, no mirror writes, no requests (design D10)
+- [x] 4.9 Add dwell tracking to `SurahReader` on the existing `IntersectionObserver`: an ayah qualifies after 2 continuous seconds in the reading zone, with the timer cleared when it leaves
+- [x] 4.10 Add `DWELL_MS` to `client/src/utils/constants.ts` as a single named constant, since it is the tuning point called out in the design risks
 
 ## 5. Client last-read migration
 

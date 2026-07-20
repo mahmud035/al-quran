@@ -1,4 +1,5 @@
 import { api } from '@/api/axios';
+import { clearPending } from '@/features/progress/readingBuffer';
 import type { ApiEnvelope, AuthUser } from '@/types/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { createContext, useMemo, type ReactNode } from 'react';
@@ -65,9 +66,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     onSuccess: () => {
       queryClient.setQueryData(ME_KEY, null);
-      // Drop user-scoped caches (bookmarks/settings) on logout.
+      // Drop user-scoped caches (bookmarks/settings/progress) on logout.
       queryClient.removeQueries({ queryKey: ['bookmarks'] });
       queryClient.removeQueries({ queryKey: ['settings'] });
+      queryClient.removeQueries({ queryKey: ['progress'] });
+      // Undelivered reads belong to the user who signed out, not the next guest.
+      clearPending();
     },
   });
 

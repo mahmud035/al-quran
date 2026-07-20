@@ -63,6 +63,19 @@ export const REPEAT_COUNTS = [2, 3, 5, 10, Infinity];
 /** Default play count when a counted repeat mode is switched on. */
 export const DEFAULT_REPEAT_COUNT = 3;
 
+/**
+ * How long an ayah must hold the reading zone before it counts as read.
+ *
+ * This is the entire defence against fast scrolling and audio autoscroll
+ * over-crediting coverage, and the value is a considered guess rather than a
+ * measured one. It lives here as a single named constant precisely because it is
+ * the tuning point: raise it once there is real usage data.
+ */
+export const DWELL_MS = 2000;
+
+/** Progress flush cadence while ayahs are pending. Caps writes at 4/minute. */
+export const FLUSH_INTERVAL_MS = 15_000;
+
 export const DEFAULT_RECITER: Reciter = 'ar.alafasy';
 export const DEFAULT_TRANSLATION: TranslationEdition = 'en.pickthall';
 export const DEFAULT_FONT_SIZE: FontSize = 'md';
