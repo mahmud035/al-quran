@@ -24,6 +24,8 @@ const progressSchema = new Schema<IUserProgressDocument>(
     currentStreak: { type: Number, default: 0 },
     longestStreak: { type: Number, default: 0 },
     lastRead: { type: lastReadSchema, default: null },
+    // Bumped on every coverage write; see recordAyahs.
+    rev: { type: Number, required: true, default: 0 },
   },
   { timestamps: true },
 );

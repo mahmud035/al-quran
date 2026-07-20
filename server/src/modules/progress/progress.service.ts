@@ -1,3 +1,4 @@
+import { AppError } from '../../utils/AppError';
 import { khatmahPercent, normalizeCoverage, setAyahs } from './progress.coverage';
 import { ILastRead, ProgressResponse, StreakState } from './progress.interface';
 import { UserProgress } from './progress.model';
@@ -46,6 +47,23 @@ const getProgress = async (
   };
 };
 
+/** Attempts before giving up on a contended write. */
+const MAX_RECORD_ATTEMPTS = 8;
+
+/**
+ * Wait a short jittered interval before retrying a lost race.
+ *
+ * Without the jitter every loser re-reads at the same instant and collides again, so
+ * heavy contention exhausts the attempt budget in lockstep rather than draining. The
+ * backoff grows with the attempt number to spread a large pile-up.
+ */
+const backoff = (attempt: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * 20) * (attempt + 1) + 5));
+
+/** Mongo's duplicate-key error, raised when two inserts race on the unique user index. */
+const isDuplicateKeyError = (error: unknown): boolean =>
+  typeof error === 'object' && error !== null && (error as { code?: number }).code === 11000;
+
 /**
  * Record a batch of ayahs as read and apply the day's streak transition.
  *
@@ -53,46 +71,84 @@ const getProgress = async (
  * anywhere. The day is bucketed in the client's timezone, falling back to UTC when it
  * is absent or invalid rather than rejecting the write (design D5).
  *
- * Mongo has no bitwise operator over Binary, so this is a read-modify-write followed
- * by one atomic upsert. Two flushes landing at the same instant drop the earlier one's
- * bits, and that loss is permanent: a dropped ayah is only recovered if the user reads
- * it again. Concurrency is realistic here — the design targets cross-device reading —
- * so this needs optimistic concurrency (a rev field plus a bounded retry) before the
- * change is archived. Deliberately not a transaction; the retry is the cheaper fix.
+ * Mongo has no bitwise operator over Binary, so the OR has to happen in application
+ * code: read, modify, write. A concurrent flush would overwrite an in-flight cycle and
+ * silently drop its bits, permanently — a dropped ayah is only recovered if the user
+ * reads it again. Since the design targets cross-device reading, that race is
+ * realistic, so the write is guarded by `rev`: the update only applies if the document
+ * has not changed since it was read, and a losing attempt re-reads and retries against
+ * the winner's coverage. Cheaper and more predictable than a transaction.
  */
 const recordAyahs = async (
   userId: string,
   input: RecordAyahsInput,
 ): Promise<ProgressResponse> => {
-  const existing = await UserProgress.findOne({ user: userId }).lean();
-
-  const coverage = setAyahs(existing?.coverage ?? null, input.ayahs);
   const day = localDay(new Date(), input.timezone);
-  const streak = applyActivity(toStreakState(existing), day);
 
-  await UserProgress.findOneAndUpdate(
-    { user: userId },
-    {
-      $set: {
-        coverage,
+  for (let attempt = 0; attempt < MAX_RECORD_ATTEMPTS; attempt += 1) {
+    const existing = await UserProgress.findOne({ user: userId }).lean();
+
+    const coverage = setAyahs(existing?.coverage, input.ayahs);
+    const streak = applyActivity(toStreakState(existing), day);
+
+    const result: ProgressResponse = {
+      coverage: coverage.toString('base64'),
+      khatmahPercent: khatmahPercent(coverage),
+      streak: {
+        current: displayStreak(streak, day),
+        longest: streak.longestStreak,
         lastActiveDay: streak.lastActiveDay,
-        currentStreak: streak.currentStreak,
-        longestStreak: streak.longestStreak,
       },
-    },
-    { upsert: true, new: true, setDefaultsOnInsert: true, runValidators: true },
-  );
+      lastRead: (existing?.lastRead as ILastRead | null | undefined) ?? null,
+    };
 
-  return {
-    coverage: coverage.toString('base64'),
-    khatmahPercent: khatmahPercent(coverage),
-    streak: {
-      current: displayStreak(streak, day),
-      longest: streak.longestStreak,
-      lastActiveDay: streak.lastActiveDay,
-    },
-    lastRead: (existing?.lastRead as ILastRead | null | undefined) ?? null,
-  };
+    if (!existing) {
+      try {
+        await UserProgress.create({
+          user: userId,
+          coverage,
+          lastActiveDay: streak.lastActiveDay,
+          currentStreak: streak.currentStreak,
+          longestStreak: streak.longestStreak,
+          rev: 1,
+        });
+        return result;
+      } catch (error) {
+        // Another request inserted first; go round again and apply as an update.
+        if (!isDuplicateKeyError(error)) throw error;
+        await backoff(attempt);
+        continue;
+      }
+    }
+
+    // `null` in $in also matches a missing field, so a document written before `rev`
+    // existed is treated as rev 0 rather than being unmatchable.
+    const expectedRev = existing.rev ?? 0;
+    const updated = await UserProgress.findOneAndUpdate(
+      { user: userId, rev: expectedRev === 0 ? { $in: [0, null] } : expectedRev },
+      {
+        $set: {
+          coverage,
+          lastActiveDay: streak.lastActiveDay,
+          currentStreak: streak.currentStreak,
+          longestStreak: streak.longestStreak,
+        },
+        $inc: { rev: 1 },
+      },
+      { new: true, runValidators: true },
+    ).lean();
+
+    if (updated) return result;
+
+    // Lost the race: another write landed between the read and the update. Re-read
+    // and reapply this batch on top of theirs.
+    await backoff(attempt);
+  }
+
+  throw new AppError(
+    409,
+    'Could not record reading due to concurrent updates. Please try again.',
+  );
 };
 
 /**

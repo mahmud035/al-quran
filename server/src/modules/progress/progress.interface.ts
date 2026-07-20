@@ -19,6 +19,12 @@ export interface IUserProgress {
   currentStreak: number;
   longestStreak: number;
   lastRead?: ILastRead | null;
+  /**
+   * Optimistic-concurrency guard. Coverage cannot be OR-ed server-side (Mongo has no
+   * bitwise operator over Binary), so a concurrent flush would otherwise overwrite an
+   * in-flight read-modify-write and silently drop its bits.
+   */
+  rev: number;
 }
 
 export interface IUserProgressDocument extends IUserProgress, Document {
