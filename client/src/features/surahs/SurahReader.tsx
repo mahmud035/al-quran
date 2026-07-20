@@ -142,6 +142,7 @@ export function SurahReader({ surahNumber }: { surahNumber: number }) {
             <AyahCard
               ayah={ayah}
               surahNumber={surahNumber}
+              surahEnglishName={surah.englishName}
               fontSize={preferences.fontSize}
               isActive={isPlayingThisSurah && player.state.currentAyahIndex === index}
               onPlay={() => player.playAyah(surahNumber, surah.globalAyahNumbers, index)}

@@ -53,6 +53,16 @@ export const ARABIC_TEXT_SIZE: Record<FontSize, string> = {
   xl: 'text-5xl leading-[2.5]',
 };
 
+/** Selectable playback speeds. A discrete list, not a free slider — arbitrary rates
+ * have no value for recitation and a smaller control fits the player bar. */
+export const PLAYBACK_RATES = [0.5, 0.75, 1, 1.25, 1.5, 2];
+
+/** Selectable repeat counts. `Infinity` is unbounded repeat, rendered as ∞. */
+export const REPEAT_COUNTS = [2, 3, 5, 10, Infinity];
+
+/** Default play count when a counted repeat mode is switched on. */
+export const DEFAULT_REPEAT_COUNT = 3;
+
 export const DEFAULT_RECITER: Reciter = 'ar.alafasy';
 export const DEFAULT_TRANSLATION: TranslationEdition = 'en.pickthall';
 export const DEFAULT_FONT_SIZE: FontSize = 'md';

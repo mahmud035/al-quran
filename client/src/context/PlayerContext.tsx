@@ -3,6 +3,7 @@ import {
   initialPlayerState,
   playerReducer,
   type PlayerState,
+  type RepeatMode,
 } from '@/context/playerReducer';
 import { buildPlaylist } from '@/utils/buildPlaylist';
 import {
@@ -27,6 +28,8 @@ export interface PlayerContextValue {
   seek: (time: number) => void;
   setReciter: (reciter: Reciter) => void;
   setVolume: (volume: number) => void;
+  setRepeat: (repeat: RepeatMode) => void;
+  setPlaybackRate: (playbackRate: number) => void;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -37,19 +40,28 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   const currentUrl = state.playlist[state.currentAyahIndex];
+  const { replayToken } = state;
+  const loadedUrlRef = useRef<string | undefined>(undefined);
 
   // Load the source whenever the current ayah's URL changes, then resume if playing.
+  // A replayToken bump with the same URL is a repeat: seek to 0 and play instead of
+  // re-assigning src and calling load(), which would refetch and stall the loop.
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !currentUrl) return;
-    audio.src = currentUrl;
-    audio.load();
+    if (loadedUrlRef.current === currentUrl) {
+      audio.currentTime = 0;
+    } else {
+      loadedUrlRef.current = currentUrl;
+      audio.src = currentUrl;
+      audio.load();
+    }
     if (state.isPlaying) {
       audio.play().catch(() => undefined);
     }
-    // Only react to URL changes here; play/pause toggling is handled below.
+    // Only react to URL and replay changes here; play/pause toggling is handled below.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUrl]);
+  }, [currentUrl, replayToken]);
 
   // Reflect play/pause state onto the element.
   useEffect(() => {
@@ -64,6 +76,16 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     const audio = audioRef.current;
     if (audio) audio.volume = state.volume;
   }, [state.volume]);
+
+  // Reflect speed onto the element. Unlike volume, playbackRate is reset from
+  // defaultPlaybackRate by the media load algorithm, so both must be set for the rate
+  // to survive the load() on every ayah transition.
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    audio.defaultPlaybackRate = state.playbackRate;
+    audio.playbackRate = state.playbackRate;
+  }, [state.playbackRate]);
 
   const playSurah = useCallback(
     (surah: number, globalAyahNumbers: number[]) => {
@@ -123,9 +145,41 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
     dispatch({ type: 'SET_VOLUME', volume });
   }, []);
 
+  const setRepeat = useCallback((repeat: RepeatMode) => {
+    dispatch({ type: 'SET_REPEAT', repeat });
+  }, []);
+
+  const setPlaybackRate = useCallback((playbackRate: number) => {
+    dispatch({ type: 'SET_PLAYBACK_RATE', playbackRate });
+  }, []);
+
   const value = useMemo<PlayerContextValue>(
-    () => ({ state, playSurah, playAyah, togglePlay, next, prev, seek, setReciter, setVolume }),
-    [state, playSurah, playAyah, togglePlay, next, prev, seek, setReciter, setVolume],
+    () => ({
+      state,
+      playSurah,
+      playAyah,
+      togglePlay,
+      next,
+      prev,
+      seek,
+      setReciter,
+      setVolume,
+      setRepeat,
+      setPlaybackRate,
+    }),
+    [
+      state,
+      playSurah,
+      playAyah,
+      togglePlay,
+      next,
+      prev,
+      seek,
+      setReciter,
+      setVolume,
+      setRepeat,
+      setPlaybackRate,
+    ],
   );
 
   return (
@@ -133,7 +187,7 @@ export function PlayerProvider({ children }: { children: ReactNode }) {
       {children}
       <audio
         ref={audioRef}
-        onEnded={() => dispatch({ type: 'NEXT' })}
+        onEnded={() => dispatch({ type: 'TRACK_ENDED' })}
         onTimeUpdate={(e) =>
           dispatch({
             type: 'SET_TIME',

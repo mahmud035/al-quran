@@ -1,12 +1,15 @@
 import { ProgressBar } from '@/features/player/ProgressBar';
 import { ReciterSelect } from '@/features/player/ReciterSelect';
+import { RepeatControl } from '@/features/player/RepeatControl';
+import { SpeedControl } from '@/features/player/SpeedControl';
 import { VolumeControl } from '@/features/player/VolumeControl';
 import { usePlayer } from '@/features/player/usePlayer';
 import { Pause, Play, SkipBack, SkipForward } from 'lucide-react';
 
 /** Persistent bottom audio bar — renders only once a surah is loaded. */
 export function PlayerBar() {
-  const { state, togglePlay, next, prev, seek, setReciter, setVolume } = usePlayer();
+  const { state, togglePlay, next, prev, seek, setReciter, setVolume, setRepeat, setPlaybackRate } =
+    usePlayer();
 
   if (state.currentSurah === null || state.playlist.length === 0) return null;
 
@@ -55,12 +58,21 @@ export function PlayerBar() {
           </div>
 
           <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
+            <SpeedControl rate={state.playbackRate} onChange={setPlaybackRate} />
             <VolumeControl volume={state.volume} onChange={setVolume} />
             <div className="min-w-0 max-w-[40vw] sm:max-w-none">
               <ReciterSelect value={state.reciter} onChange={setReciter} />
             </div>
           </div>
         </div>
+
+        <RepeatControl
+          repeat={state.repeat}
+          repeatsDone={state.repeatsDone}
+          currentAyahIndex={state.currentAyahIndex}
+          total={total}
+          onChange={setRepeat}
+        />
       </div>
     </div>
   );
