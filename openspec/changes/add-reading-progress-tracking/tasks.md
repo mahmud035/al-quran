@@ -64,15 +64,15 @@ No client work begins until this gate is green.
 
 ## 5. Client last-read migration
 
-- [ ] 5.1 Add an optional `updatedAt` epoch-millisecond field when writing the local last-read record
-- [ ] 5.2 Update the local validator so records without `updatedAt` stay valid and a non-numeric `updatedAt` is treated as absent rather than invalidating the record
-- [ ] 5.3 Add `useLastRead.ts` selecting the store by auth state: server for authenticated users, `lastRead.ts` for guests
-- [ ] 5.4 Route authenticated last-read writes through `PUT /api/progress/last-read`, swallowing failures so reading is never interrupted
-- [ ] 5.5 Implement sign-in reconciliation per design D8, choosing the more recent position and treating a missing local timestamp as older
-- [ ] 5.6 Clear the local last-read key once the position is server-owned, so exactly one source of truth exists per auth state
-- [ ] 5.7 On a failed authenticated fetch, offer no position rather than falling back to a local value that may belong to a previous guest session
-- [ ] 5.8 On sign-out, stop offering the previously authenticated user's position to the guest session
-- [ ] 5.9 Confirm `SurahReader`'s existing unmount write goes through the new auth-aware path rather than writing local storage directly
+- [x] 5.1 Add an optional `updatedAt` epoch-millisecond field when writing the local last-read record
+- [x] 5.2 Update the local validator so records without `updatedAt` stay valid and a non-numeric `updatedAt` is treated as absent rather than invalidating the record
+- [x] 5.3 Add `useLastRead.ts` selecting the store by auth state: server for authenticated users, `lastRead.ts` for guests
+- [x] 5.4 Route authenticated last-read writes through `PUT /api/progress/last-read`, swallowing failures so reading is never interrupted
+- [x] 5.5 Implement sign-in reconciliation per design D8, choosing the more recent position and treating a missing local timestamp as older
+- [x] 5.6 Clear the local last-read key once the position is server-owned, so exactly one source of truth exists per auth state
+- [x] 5.7 On a failed authenticated fetch, offer no position rather than falling back to a local value that may belong to a previous guest session
+- [x] 5.8 On sign-out, stop offering the previously authenticated user's position to the guest session
+- [x] 5.9 Confirm `SurahReader`'s existing unmount write goes through the new auth-aware path rather than writing local storage directly
 
 ## 6. Client progress surfaces
 

@@ -9,7 +9,6 @@ import { AyahCard } from '@/features/surahs/AyahCard';
 import { useSurah } from '@/features/surahs/useSurah';
 import { useSettings } from '@/features/settings/useSettings';
 import { DWELL_MS } from '@/utils/constants';
-import { setLastRead } from '@/utils/lastRead';
 import { Play } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 
@@ -28,9 +27,14 @@ interface SurahReaderProps {
    * it to progress recording.
    */
   onAyahRead?: (globalAyahNumber: number) => void;
+  /**
+   * Called on unmount with where the user stopped reading. The page owns which store
+   * that goes to — server for authenticated users, local storage for guests.
+   */
+  onExit?: (position: { surahNumber: number; surahName: string; ayahNumber: number }) => void;
 }
 
-export function SurahReader({ surahNumber, onAyahRead }: SurahReaderProps) {
+export function SurahReader({ surahNumber, onAyahRead, onExit }: SurahReaderProps) {
   const { preferences, updatePreferences } = useSettings();
   const player = usePlayer();
   const { data: surah, isLoading, isError, refetch } = useSurah(
@@ -49,10 +53,16 @@ export function SurahReader({ surahNumber, onAyahRead }: SurahReaderProps) {
     surahNameRef.current = surah?.englishName ?? '';
   }, [surah]);
 
-  // Persist last-read position on unmount (localStorage only — no DB write on scroll).
+  // Emit the last-read position on unmount. The reader does not choose a store — the
+  // page routes it to the server or local storage depending on auth state.
+  const onExitRef = useRef(onExit);
+  useEffect(() => {
+    onExitRef.current = onExit;
+  }, [onExit]);
+
   useEffect(() => {
     return () => {
-      setLastRead({
+      onExitRef.current?.({
         surahNumber,
         surahName: surahNameRef.current || `Surah ${surahNumber}`,
         ayahNumber: currentAyahRef.current,

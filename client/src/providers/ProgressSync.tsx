@@ -1,15 +1,19 @@
+import { useLastReadReconciliation } from '@/features/progress/useLastRead';
 import { useReadingSync } from '@/features/progress/useRecordReading';
 
 /**
- * Owns the app-wide reading-flush lifecycle: recovering reads mirrored by a previous
- * session, flushing on an interval while ayahs are pending, and flushing on exit.
+ * App-level sync for the progress domain. Headless — renders nothing.
  *
- * It lives here rather than in the reader so that reads buffered during a session are
- * still delivered after the user navigates away from the surah, and so that a
- * recovered mirror is retried on app load even if no surah is ever opened. Headless —
- * renders nothing.
+ * Two lifecycles, both of which have to outlive the reader:
+ *
+ * - The reading-flush lifecycle: recovering reads mirrored by a previous session,
+ *   flushing on an interval while ayahs are pending, and flushing on exit. It lives
+ *   here so buffered reads still deliver after the user navigates away from a surah,
+ *   and so a recovered mirror is retried on app load even if no surah is opened.
+ * - Last-read reconciliation, which runs once per sign-in.
  */
 export function ProgressSync() {
   useReadingSync();
+  useLastReadReconciliation();
   return null;
 }

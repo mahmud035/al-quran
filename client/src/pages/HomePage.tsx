@@ -1,9 +1,9 @@
 import { ErrorState } from '@/components/ui/ErrorState';
+import { useLastRead } from '@/features/progress/useLastRead';
 import { useFavourites } from '@/features/surahs/useFavourites';
 import { SurahGrid, SurahGridSkeleton } from '@/features/surahs/SurahGrid';
 import { useSurahList } from '@/features/surahs/useSurahList';
 import type { SurahMeta } from '@/types/quran';
-import { getLastRead } from '@/utils/lastRead';
 import { BookOpen } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
@@ -36,7 +36,7 @@ export function HomePage() {
 
   const [filter, setFilter] = useState<RevelationFilter>('All');
   const [sort, setSort] = useState<SortKey>('serial');
-  const lastRead = getLastRead();
+  const { lastRead } = useLastRead();
 
   const visible = useMemo(() => {
     if (!surahs) return [];

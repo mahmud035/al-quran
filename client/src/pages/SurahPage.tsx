@@ -1,4 +1,5 @@
 import { EmptyState } from '@/components/ui/EmptyState';
+import { useLastRead } from '@/features/progress/useLastRead';
 import { useRecordReading } from '@/features/progress/useRecordReading';
 import { SurahReader } from '@/features/surahs/SurahReader';
 import { BookOpen } from 'lucide-react';
@@ -8,9 +9,11 @@ export function SurahPage() {
   const { number } = useParams();
   const surahNumber = Number(number);
 
-  // The page wires reading to progress: the reader detects dwell, the progress
-  // feature records it. Keeps features/surahs free of any progress import.
+  // The page wires reading to progress: the reader detects dwell and reports where
+  // the user stopped, the progress feature decides what to do with both. Keeps
+  // features/surahs free of any progress import.
   const { recordAyah } = useRecordReading();
+  const { save: saveLastRead } = useLastRead();
 
   if (!Number.isInteger(surahNumber) || surahNumber < 1 || surahNumber > 114) {
     return (
@@ -22,5 +25,11 @@ export function SurahPage() {
     );
   }
 
-  return <SurahReader surahNumber={surahNumber} onAyahRead={recordAyah} />;
+  return (
+    <SurahReader
+      surahNumber={surahNumber}
+      onAyahRead={recordAyah}
+      onExit={(position) => void saveLastRead(position)}
+    />
+  );
 }
