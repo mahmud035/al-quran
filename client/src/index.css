@@ -24,6 +24,16 @@
 
 html {
   scroll-behavior: smooth;
+  /*
+   * Browser-painted UI — <select> popups, scrollbars, form controls — takes its
+   * palette from `color-scheme`, not from our `dark` class, so it has to be declared
+   * separately or the theme dropdown opens light on a dark page.
+   */
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
 }
 
 body {

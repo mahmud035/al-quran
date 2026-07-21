@@ -5,6 +5,24 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Al Quran App</title>
+    <script>
+      // Apply the theme before first paint. The module in src/ runs after paint, so
+      // without this every load flashes the wrong theme. Second copy of the rule in
+      // src/utils/theme.ts (resolveSystemTheme) — keep the two in step.
+      (function () {
+        try {
+          var pref = localStorage.getItem('qm:theme');
+          if (pref !== 'light' && pref !== 'dark') pref = 'system';
+          var dark =
+            pref === 'dark' ||
+            (pref === 'system' && matchMedia('(prefers-color-scheme: dark)').matches);
+          if (dark) document.documentElement.classList.add('dark');
+        } catch (e) {
+          // Storage or matchMedia unavailable — fall through to the light default
+          // rather than blocking the app from booting.
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
