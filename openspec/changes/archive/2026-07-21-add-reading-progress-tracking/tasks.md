@@ -84,15 +84,15 @@ No client work begins until this gate is green.
 
 ## 7. Gate B — full verification
 
-- [ ] 7.1 `npm run build` clean in `client/` and `server/`
-- [ ] 7.2 `npx tsc --noEmit` clean in `client/`; `npm run typecheck` clean in `server/`
-- [ ] 7.3 `npm run lint` clean in `client/`
-- [ ] 7.4 `npm test` passing in `client/` and `server/`, with Batch A's player and share suites still green
-- [ ] 7.5 Manual — reading a surah records coverage and the percentage rises; scrolling quickly past ayahs does not credit them
-- [ ] 7.6 Manual — listening with autoscroll credits ayahs on the same dwell path
-- [ ] 7.7 Manual — a session's reads survive closing the tab mid-session and appear after reopening
-- [ ] 7.8 Manual — streak shows 1 on first read, and a lapsed streak displays 0 before the next read rather than a stale value
-- [ ] 7.9 Manual — a guest reading records nothing and issues no progress requests
-- [ ] 7.10 Manual — a guest with a local last-read position signs in and the newer position wins; the local key is cleared
-- [ ] 7.11 Manual — last-read agrees across two browsers signed in as the same user
-- [ ] 7.12 Manual — regression: reading, playback, repeat, speed, search, bookmarks, and settings sync all behave as before
+- [x] 7.1 `npm run build` clean in `client/` and `server/`
+- [x] 7.2 `npx tsc --noEmit` clean in `client/`; `npm run typecheck` clean in `server/`
+- [x] 7.3 `npm run lint` clean in `client/`
+- [x] 7.4 `npm test` passing in `client/` and `server/`, with Batch A's player and share suites still green
+- [x] 7.5 Manual — reading a surah records coverage and the percentage rises; scrolling quickly past ayahs does not credit them
+- [x] 7.6 Manual — listening with autoscroll credits ayahs on the same dwell path
+- [x] 7.7 Manual — a session's reads survive closing the tab mid-session and appear after reopening
+- [x] 7.8 Manual — streak shows 1 on first read, and a lapsed streak displays 0 before the next read rather than a stale value
+- [x] 7.9 Manual — a guest reading records nothing and issues no progress requests
+- [x] 7.10 Manual — a guest with a local last-read position signs in and the newer position wins; the local key is cleared
+- [x] 7.11 Manual — last-read agrees across two browsers signed in as the same user
+- [x] 7.12 Manual — regression: reading, playback, repeat, speed, search, bookmarks, and settings sync all behave as before
