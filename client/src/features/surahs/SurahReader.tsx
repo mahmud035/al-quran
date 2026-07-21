@@ -188,7 +188,7 @@ export function SurahReader({ surahNumber, onAyahRead, onExit }: SurahReaderProp
           <span className="text-sm text-stone-500 dark:text-slate-400">Font size</span>
           <FontSizeControl
             value={preferences.fontSize}
-            onChange={(fontSize) => void updatePreferences({ fontSize })}
+            onChange={(fontSize) => updatePreferences({ fontSize })}
           />
         </div>
       </div>
