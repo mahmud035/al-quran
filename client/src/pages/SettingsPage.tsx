@@ -2,8 +2,8 @@ import { FontSizeControl } from '@/components/ui/FontSizeControl';
 import { useAuth } from '@/features/auth/useAuth';
 import { usePlayer } from '@/features/player/usePlayer';
 import { useSettings } from '@/features/settings/useSettings';
+import { useThemeSetting } from '@/features/settings/useThemeSetting';
 import type { Reciter, Theme, TranslationEdition } from '@/types/api';
-import { useTheme } from '@/providers/ThemeProvider';
 import { RECITERS, TRANSLATIONS } from '@/utils/constants';
 import type { ReactNode } from 'react';
 
@@ -52,6 +52,7 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 }
 
 const THEME_OPTIONS: Option<Theme>[] = [
+  { value: 'system', label: 'Auto' },
   { value: 'light', label: 'Light' },
   { value: 'dark', label: 'Dark' },
 ];
@@ -59,13 +60,8 @@ const THEME_OPTIONS: Option<Theme>[] = [
 export function SettingsPage() {
   const { isAuthenticated } = useAuth();
   const { preferences, updatePreferences } = useSettings();
-  const { theme, setTheme } = useTheme();
+  const { preference: themePreference, setTheme } = useThemeSetting();
   const player = usePlayer();
-
-  const setThemePref = (next: Theme) => {
-    setTheme(next); // apply to the DOM immediately
-    if (isAuthenticated) void updatePreferences({ theme: next });
-  };
 
   const setReciterPref = (next: Reciter) => {
     void updatePreferences({ reciter: next });
@@ -103,7 +99,7 @@ export function SettingsPage() {
       </Section>
 
       <Section title="Theme">
-        <OptionRow options={THEME_OPTIONS} value={theme} onChange={setThemePref} />
+        <OptionRow options={THEME_OPTIONS} value={themePreference} onChange={setTheme} />
       </Section>
     </div>
   );

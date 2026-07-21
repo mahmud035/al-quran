@@ -9,7 +9,7 @@ export type Reciter =
   | 'ar.mahermuaiqly';
 export type TranslationEdition = 'en.pickthall' | 'bn.bengali';
 export type FontSize = 'sm' | 'md' | 'lg' | 'xl';
-export type Theme = 'light' | 'dark';
+export type Theme = 'system' | 'light' | 'dark';
 
 export interface IUserSettings {
   user: Types.ObjectId;
@@ -37,4 +37,4 @@ export const RECITERS: Reciter[] = [
 ];
 export const TRANSLATION_EDITIONS: TranslationEdition[] = ['en.pickthall', 'bn.bengali'];
 export const FONT_SIZES: FontSize[] = ['sm', 'md', 'lg', 'xl'];
-export const THEMES: Theme[] = ['light', 'dark'];
+export const THEMES: Theme[] = ['system', 'light', 'dark'];

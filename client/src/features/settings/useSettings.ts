@@ -10,14 +10,20 @@ export interface Preferences {
   reciter: Reciter;
   translationEdition: TranslationEdition;
   fontSize: FontSize;
-  theme: Theme;
+  /**
+   * Absent until a real value exists — a fetched server value, or a guest's own
+   * choice. There is deliberately no default: a placeholder theme here is
+   * indistinguishable from a fetched one, and applying it is what used to reset a
+   * logged-in user's theme on reload. The device cache owns the fallback instead
+   * (see utils/theme.ts).
+   */
+  theme?: Theme;
 }
 
 const DEFAULTS: Preferences = {
   reciter: DEFAULT_RECITER,
   translationEdition: DEFAULT_TRANSLATION,
   fontSize: DEFAULT_FONT_SIZE,
-  theme: 'light',
 };
 
 const pick = (s: UserSettings): Preferences => ({
@@ -74,6 +80,11 @@ export function useSettings() {
   return {
     preferences,
     updatePreferences,
-    isLoading: isAuthenticated && settingsQuery.isLoading,
+    /**
+     * The settings actually came back from the server. Deliberately not `!isLoading`,
+     * which is also false for a query that is enabled but has not begun fetching —
+     * the window in which the old sync applied a placeholder theme.
+     */
+    isSuccess: isAuthenticated && settingsQuery.isSuccess,
   };
 }
