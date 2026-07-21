@@ -14,7 +14,7 @@ const settingsSchema = new Schema<IUserSettingsDocument>(
     reciter: { type: String, enum: RECITERS, default: 'ar.alafasy' },
     translationEdition: { type: String, enum: TRANSLATION_EDITIONS, default: 'en.pickthall' },
     fontSize: { type: String, enum: FONT_SIZES, default: 'md' },
-    theme: { type: String, enum: THEMES, default: 'light' },
+    theme: { type: String, enum: THEMES, default: 'system' },
   },
   { timestamps: true },
 );
