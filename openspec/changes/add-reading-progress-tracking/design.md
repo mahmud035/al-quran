@@ -80,6 +80,25 @@ To offset the opacity, the service exposes a `coverageToRanges()` helper used by
 and available for debugging. Recording is naturally idempotent: OR-ing a set bit is a
 no-op, so retries and duplicate sends need no deduplication anywhere.
 
+### D2a — Coverage writes are guarded by an optimistic-concurrency `rev`
+
+The bitmap's one operational cost falls on the write path. Mongo has no bitwise
+operator over `Binary`, so the OR cannot happen in the database — the service must
+read the document, OR the batch in application code, and write it back. Two flushes
+overlapping (the same user reading on two devices, which D8 explicitly supports) would
+each read the same coverage and the later write would clobber the earlier one's bits.
+Unlike a dropped network flush, this loss is permanent: coverage is only re-credited
+if the user reads those exact ayahs again.
+
+The document therefore carries a `rev` integer, bumped on every coverage write. The
+update applies only when `rev` still matches what was read; a losing writer re-reads
+and reapplies its batch on top of the winner's coverage, with jittered backoff so
+simultaneous losers do not collide again in lockstep. This is optimistic concurrency,
+chosen over a transaction (cheaper, and the retry is bounded) and over Mongoose's
+built-in `optimisticConcurrency` (an explicit field is visible in the document and
+obvious in the query). A missing `rev` is matched as `0`, so documents written before
+the field existed are not stranded.
+
 ### D3 — Client buffers reads, flushes on a schedule and on exit
 
 The client accumulates qualifying ayah numbers in an in-memory `Set` and flushes:
