@@ -120,6 +120,30 @@ coverage is strictly better than stalling recording.
 *Alternative considered:* write-per-ayah with server-side debounce. Rejected — it
 moves the same volume onto the network and makes the mobile case worse.
 
+### D3a — The buffer is drained only on confirmed delivery
+
+The mirror's "retried on next load rather than lost" guarantee holds only if an ayah
+is never removed from the buffer before the server confirms it. The first
+implementation broke this on both flush paths, and both were corrected after the
+initial build:
+
+- **Exit flush (`sendBeacon`).** `sendBeacon` reports only that the browser *queued*
+  the request, never that the server accepted it. Consuming the buffer on send meant a
+  beacon the browser dropped, or one the server rejected with a `409` after the D2a
+  retry budget was exhausted, was gone from the mirror too. The exit flush now sends
+  *without consuming*; a later confirmed flush drains what actually landed.
+- **Scheduled flush (`fetch`).** A normal `fetch` has no `keepalive`, so an in-flight
+  flush is cancelled if the tab closes mid-request, and its failure handler is not
+  guaranteed to run during teardown. Draining the buffer up front therefore lost the
+  batch — and, having drained it, left the `pagehide` beacon with nothing to re-send.
+
+Both now follow one rule: **snapshot with a non-consuming read, and remove only the
+batch the server confirms** (removing exactly that batch, so ayahs that qualify while a
+request is in flight are kept). A cancelled, dropped, or rejected flush removes
+nothing, so the still-pending beacon, the mirror's next-load recovery, and the request
+itself become three independent backstops rather than one fragile path. Idempotent
+recording (D2) makes the resulting duplicate deliveries free.
+
 ### D4 — An ayah qualifies after 2 seconds in the reading zone
 
 The existing observer already identifies the ayah in the reading zone. Recording adds
@@ -236,7 +260,9 @@ This mirrors how bookmarks already behave and needs no new auth work.
   travellers to no benefit.
 - **`sendBeacon` on `pagehide` is best-effort** and can be dropped by the browser →
   mitigated by the local-storage mirror, which retries on next load. Coverage is
-  idempotent, so a duplicate retry costs nothing.
+  idempotent, so a duplicate retry costs nothing. This mitigation is real only because
+  the exit flush does not consume the buffer (D3a); consuming it would have discarded
+  exactly the dropped reads the mirror is meant to recover.
 - **Write volume is bounded but not small** for a long session → a 15-second cadence
   caps it at four requests per minute regardless of scroll speed, each carrying a small
   integer array.
