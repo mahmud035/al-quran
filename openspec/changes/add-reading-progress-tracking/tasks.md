@@ -76,11 +76,11 @@ No client work begins until this gate is green.
 
 ## 6. Client progress surfaces
 
-- [ ] 6.1 Add a streak display to `HomePage` showing the display streak from the API, not a locally computed value
-- [ ] 6.2 Add a khatmah progress display showing percentage read
-- [ ] 6.3 Define loading, empty, and error states for both, using the existing `Skeleton` and `ErrorState` components
-- [ ] 6.4 Show a signed-out state inviting an account rather than rendering zeroes or an error for guests
-- [ ] 6.5 Verify the new surfaces use Tailwind semantic tokens and render correctly in light and dark themes
+- [x] 6.1 Add a streak display to `HomePage` showing the display streak from the API, not a locally computed value
+- [x] 6.2 Add a khatmah progress display showing percentage read
+- [x] 6.3 Define loading, empty, and error states for both, using the existing `Skeleton` and `ErrorState` components
+- [x] 6.4 Show a signed-out state inviting an account rather than rendering zeroes or an error for guests
+- [x] 6.5 Verify the new surfaces use Tailwind semantic tokens and render correctly in light and dark themes
 
 ## 7. Gate B — full verification
 

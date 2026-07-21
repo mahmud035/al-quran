@@ -1,4 +1,5 @@
 import { ErrorState } from '@/components/ui/ErrorState';
+import { ProgressSummary } from '@/features/progress/ProgressSummary';
 import { useLastRead } from '@/features/progress/useLastRead';
 import { useFavourites } from '@/features/surahs/useFavourites';
 import { SurahGrid, SurahGridSkeleton } from '@/features/surahs/SurahGrid';
@@ -53,6 +54,8 @@ export function HomePage() {
           Browse all 114 surahs — read, listen, and bookmark.
         </p>
       </div>
+
+      <ProgressSummary />
 
       {lastRead && (
         <Link
