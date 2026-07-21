@@ -20,10 +20,8 @@ export function useThemeSetting() {
   const setTheme = useCallback(
     (next: Theme) => {
       setPreference(next);
-      updatePreferences({ theme: next }).catch(() => {
-        // The choice is already applied and cached, so the user sees what they picked.
-        // A failed write is retried implicitly the next time they change the setting.
-      });
+      // No catch needed: updatePreferences handles its own failure and always resolves.
+      updatePreferences({ theme: next });
     },
     [setPreference, updatePreferences],
   );

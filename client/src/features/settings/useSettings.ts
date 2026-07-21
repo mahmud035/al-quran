@@ -1,6 +1,7 @@
 import { api } from '@/api/axios';
 import { useAuth } from '@/features/auth/useAuth';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useToast } from '@/providers/ToastProvider';
 import type { ApiEnvelope, FontSize, Reciter, Theme, TranslationEdition, UserSettings } from '@/types/api';
 import { DEFAULT_FONT_SIZE, DEFAULT_RECITER, DEFAULT_TRANSLATION } from '@/utils/constants';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -26,6 +27,13 @@ const DEFAULTS: Preferences = {
   fontSize: DEFAULT_FONT_SIZE,
 };
 
+/**
+ * Single wording for a failed write, so repeated failures coalesce into one message
+ * rather than stacking.
+ */
+const SETTINGS_SYNC_FAILED_MESSAGE =
+  'Couldn’t sync your settings — they’ll apply on this device only.';
+
 const pick = (s: UserSettings): Preferences => ({
   reciter: s.reciter,
   translationEdition: s.translationEdition,
@@ -42,6 +50,7 @@ const pick = (s: UserSettings): Preferences => ({
 export function useSettings() {
   const { isAuthenticated } = useAuth();
   const queryClient = useQueryClient();
+  const { notify } = useToast();
   const [guestPrefs, setGuestPrefs] = useLocalStorage<Preferences>('qm:settings', DEFAULTS);
 
   const settingsQuery = useQuery<Preferences>({
@@ -66,15 +75,28 @@ export function useSettings() {
     ? (settingsQuery.data ?? DEFAULTS)
     : guestPrefs;
 
+  /**
+   * Apply a preference change. Never rejects: a failed server write is reported to the
+   * user here and the call resolves. Correctness used to depend on each call site
+   * remembering to catch, and three of the four did not — so the handling lives at the
+   * one point the failure occurs rather than at every call site added in future
+   * (design D1). The chosen value stays applied locally either way.
+   */
   const updatePreferences = useCallback(
     async (patch: Partial<Preferences>) => {
-      if (isAuthenticated) {
-        await updateMutation.mutateAsync(patch);
-      } else {
+      if (!isAuthenticated) {
         setGuestPrefs((prev) => ({ ...prev, ...patch }));
+        return;
+      }
+      try {
+        await updateMutation.mutateAsync(patch);
+      } catch {
+        // The consequence, not the mechanism (design D6) — true whether the cause was
+        // offline, a 500, or a timeout.
+        notify(SETTINGS_SYNC_FAILED_MESSAGE);
       }
     },
-    [isAuthenticated, updateMutation, setGuestPrefs],
+    [isAuthenticated, updateMutation, setGuestPrefs, notify],
   );
 
   return {

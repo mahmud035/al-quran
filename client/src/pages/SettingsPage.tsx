@@ -64,7 +64,7 @@ export function SettingsPage() {
   const player = usePlayer();
 
   const setReciterPref = (next: Reciter) => {
-    void updatePreferences({ reciter: next });
+    updatePreferences({ reciter: next });
     player.setReciter(next); // keep the live player in sync
   };
 
@@ -83,7 +83,7 @@ export function SettingsPage() {
         <OptionRow
           options={TRANSLATIONS as Option<TranslationEdition>[]}
           value={preferences.translationEdition}
-          onChange={(translationEdition) => void updatePreferences({ translationEdition })}
+          onChange={(translationEdition) => updatePreferences({ translationEdition })}
         />
       </Section>
 
@@ -94,7 +94,7 @@ export function SettingsPage() {
       <Section title="Arabic font size">
         <FontSizeControl
           value={preferences.fontSize}
-          onChange={(fontSize) => void updatePreferences({ fontSize })}
+          onChange={(fontSize) => updatePreferences({ fontSize })}
         />
       </Section>
 
