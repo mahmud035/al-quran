@@ -77,6 +77,15 @@ export function pendingCount(): number {
 }
 
 /**
+ * Return everything pending without consuming it. Used by the exit beacon, which can
+ * never confirm delivery and so must leave the buffer intact for a later confirmed
+ * flush to drain.
+ */
+export function peekPending(): number[] {
+  return [...ensureLoaded()];
+}
+
+/**
  * Remove and return everything pending, ready to send. The caller owns them from
  * here: on a failed send it must hand them back via restorePending.
  */

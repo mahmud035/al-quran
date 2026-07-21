@@ -2,6 +2,7 @@ import { api } from '@/api/axios';
 import { useAuth } from '@/features/auth/useAuth';
 import {
   addPending,
+  peekPending,
   pendingCount,
   restorePending,
   takePending,
@@ -52,25 +53,35 @@ async function flushPending(): Promise<void> {
  * would be cancelled. The auth cookie is HTTP-only and rides along automatically —
  * that is precisely why this works here, since a beacon cannot set headers.
  *
- * Delivery is best-effort and the browser may drop it; the local-storage mirror is
- * the backstop, retrying on next load.
+ * This deliberately does NOT consume the buffer. `sendBeacon` reports only that the
+ * browser queued the request, never that the server accepted it, so a beacon that is
+ * dropped by the browser or rejected by the server — a 409 once the write's retry
+ * budget is exhausted — must leave the ayahs pending. The local-storage mirror is the
+ * backstop: the next confirmed flush (the interval, the reader unmount, or recovery on
+ * next load) re-sends them. Recording is idempotent, so a beacon that *did* land just
+ * makes that re-send a no-op. Consuming here would silently lose exactly the reads
+ * this exit flush exists to save.
+ *
+ * Exported for tests; the app reaches it only through useReadingSync.
  */
-function flushViaBeacon(): void {
-  if (pendingCount() === 0) return;
+export function flushViaBeacon(): void {
+  const ayahs = peekPending();
+  if (ayahs.length === 0) return;
   if (typeof navigator.sendBeacon !== 'function') {
+    // No beacon support: fall back to a normal flush. It may be cancelled mid-unload,
+    // but flushPending restores on failure and the mirror still holds everything.
     void flushPending();
     return;
   }
-
-  const ayahs = takePending();
-  if (ayahs.length === 0) return;
 
   const body = new Blob([JSON.stringify({ ayahs, timezone: clientTimezone() })], {
     type: 'application/json',
   });
   const url = `${api.defaults.baseURL}/progress/ayahs`;
 
-  if (!navigator.sendBeacon(url, body)) restorePending(ayahs);
+  // If the browser will not even queue it, the ayahs are still in the mirror for the
+  // next load to recover — there is nothing to undo.
+  navigator.sendBeacon(url, body);
 }
 
 /**
