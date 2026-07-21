@@ -86,26 +86,18 @@ export function peekPending(): number[] {
 }
 
 /**
- * Remove and return everything pending, ready to send. The caller owns them from
- * here: on a failed send it must hand them back via restorePending.
+ * Remove a set of ayahs once the server has confirmed it received them.
+ *
+ * This is the only path that drains the buffer, and it drains exactly what was
+ * delivered — nothing more. A flush snapshots the pending set with `peekPending`,
+ * sends it, and calls this only on success, so ayahs added while the request was in
+ * flight are left pending. Because the buffer is never emptied before delivery is
+ * confirmed, an interrupted flush loses nothing: the mirror still holds the snapshot
+ * for the next flush or for recovery on next load.
  */
-export function takePending(): number[] {
+export function removePending(ayahs: number[]): void {
   const set = ensureLoaded();
-  const values = [...set];
-  set.clear();
-  writeMirror();
-  return values;
-}
-
-/**
- * Return ayahs to the buffer after a failed send. They go to the front so that the
- * cap still evicts genuinely-oldest entries first.
- */
-export function restorePending(ayahs: number[]): void {
-  const set = ensureLoaded();
-  const merged = [...ayahs, ...set];
-  const kept = merged.slice(Math.max(0, merged.length - MAX_PENDING));
-  pending = new Set(kept);
+  for (const ayah of ayahs) set.delete(ayah);
   writeMirror();
 }
 

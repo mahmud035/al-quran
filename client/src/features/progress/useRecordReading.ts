@@ -1,12 +1,6 @@
 import { api } from '@/api/axios';
 import { useAuth } from '@/features/auth/useAuth';
-import {
-  addPending,
-  peekPending,
-  pendingCount,
-  restorePending,
-  takePending,
-} from '@/features/progress/readingBuffer';
+import { addPending, peekPending, removePending } from '@/features/progress/readingBuffer';
 import { PROGRESS_KEY, clientTimezone } from '@/features/progress/useProgress';
 import { queryClient } from '@/lib/queryClient';
 import { FLUSH_INTERVAL_MS } from '@/utils/constants';
@@ -21,25 +15,35 @@ import { useCallback, useEffect } from 'react';
 let inFlight: Promise<void> | null = null;
 
 /**
- * Send everything pending. Ayahs are removed from the buffer before the request and
- * handed back if it fails, so a failure leaves them pending for a later flush rather
- * than losing them. Recording is idempotent server-side, so a retry that duplicates a
+ * Send everything pending. The batch is snapshotted but not removed until the server
+ * confirms it: on success exactly that batch is dropped, on failure nothing is, so an
+ * interrupted or rejected flush leaves the ayahs pending for a later flush rather than
+ * losing them. Recording is idempotent server-side, so a retry that duplicates a
  * delivered batch is harmless.
+ *
+ * Not draining the buffer up front is what makes this survive a page teardown: a fetch
+ * has no `keepalive`, so it is cancelled mid-unload, but because the ayahs are still
+ * pending the `pagehide` beacon can see and re-send them, and the mirror still holds
+ * them for next-load recovery. Ayahs added while the request is in flight are outside
+ * the snapshot and are kept.
+ *
+ * Exported for tests; the app reaches it only through the hooks below.
  */
-async function flushPending(): Promise<void> {
+export async function flushPending(): Promise<void> {
   if (inFlight) return inFlight;
-  if (pendingCount() === 0) return;
 
-  const ayahs = takePending();
+  const ayahs = peekPending();
   if (ayahs.length === 0) return;
 
   inFlight = (async () => {
     try {
       await api.post('/progress/ayahs', { ayahs, timezone: clientTimezone() });
+      removePending(ayahs);
       // Streak and percentage have moved; let anything showing them refetch.
       await queryClient.invalidateQueries({ queryKey: PROGRESS_KEY });
     } catch {
-      restorePending(ayahs);
+      // Leave the snapshot pending; the mirror still holds it, so the next flush or
+      // next-load recovery retries.
     } finally {
       inFlight = null;
     }

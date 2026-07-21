@@ -1,11 +1,12 @@
 // @vitest-environment jsdom
+import { api } from '@/api/axios';
 import {
   addPending,
   peekPending,
   pendingCount,
   resetPendingForTests,
 } from '@/features/progress/readingBuffer';
-import { flushViaBeacon } from '@/features/progress/useRecordReading';
+import { flushPending, flushViaBeacon } from '@/features/progress/useRecordReading';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 const KEY = 'qm:pending-ayahs';
@@ -70,5 +71,65 @@ describe('flushViaBeacon', () => {
     const beacon = stubBeacon();
     flushViaBeacon();
     expect(beacon).not.toHaveBeenCalled();
+  });
+});
+
+describe('flushPending', () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    resetPendingForTests();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('removes the batch from the buffer once the server confirms it', async () => {
+    const post = vi.spyOn(api, 'post').mockResolvedValue({ data: {} } as never);
+    addPending(5);
+    addPending(6);
+
+    await flushPending();
+
+    expect(post).toHaveBeenCalledTimes(1);
+    expect(peekPending()).toEqual([]);
+    expect(window.localStorage.getItem(KEY)).toBeNull();
+  });
+
+  it('leaves the batch pending when the send fails, so it is retried', async () => {
+    // The fix for the in-flight cancellation edge: the buffer is not drained up front,
+    // and nothing is removed unless the server confirms. A cancelled or failed request
+    // therefore loses nothing.
+    vi.spyOn(api, 'post').mockRejectedValue(new Error('cancelled on unload'));
+    addPending(5);
+    addPending(6);
+
+    await flushPending();
+
+    expect(peekPending()).toEqual([5, 6]);
+    expect(JSON.parse(window.localStorage.getItem(KEY)!)).toEqual([5, 6]);
+  });
+
+  it('keeps ayahs that qualified while the request was in flight', async () => {
+    let resolvePost: (value: unknown) => void = () => {};
+    vi.spyOn(api, 'post').mockReturnValue(
+      new Promise((resolve) => {
+        resolvePost = resolve;
+      }) as never,
+    );
+
+    addPending(1);
+    const flush = flushPending(); // snapshots [1]
+    addPending(2); // qualifies before the server confirms
+    resolvePost({ data: {} });
+    await flush;
+
+    expect(peekPending()).toEqual([2]); // 1 confirmed and removed, 2 survives
+  });
+
+  it('issues no request when nothing is pending', async () => {
+    const post = vi.spyOn(api, 'post');
+    await flushPending();
+    expect(post).not.toHaveBeenCalled();
   });
 });
