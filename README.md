@@ -9,7 +9,43 @@ vanilla HTML/CSS/JS app (preserved in [`legacy/`](./legacy)) into a full MERN st
 All Quran **content** (text, translations, audio metadata, search) comes from the free
 [AlQuran.cloud](https://alquran.cloud/api) API, called directly from the frontend via
 TanStack Query. Per-ayah audio streams from the Islamic Network CDN. The backend owns
-**only user-specific data**: auth, bookmarks, and settings.
+**only user-specific data**: auth, bookmarks, settings, and reading progress.
+
+## Features
+
+**Reading**
+
+- All 114 surahs with Arabic, transliteration, and a selectable translation edition.
+- Last-read position is restored on return — server-owned for signed-in users (so it
+  follows you across devices), `localStorage` for guests, reconciled on sign-in.
+- Bookmark any ayah; copy or share a formatted ayah (Arabic + translation + reference)
+  via the clipboard or the Web Share API.
+
+**Listening**
+
+- Per-ayah audio with a persistent player bar and a choice of reciters.
+- Repeat modes for memorization — repeat one ayah N times, loop a selected ayah range,
+  or loop the whole surah.
+- Playback speed control (0.5×–2×), session-scoped.
+
+**Finding**
+
+- Full-text verse search across the active translation edition, deep-linking straight
+  to the matching ayah.
+- Surah-name search by name, meaning, or number, shown alongside the verse hits.
+
+**Progress** _(requires an account)_
+
+- Ayahs are recorded as read automatically from scroll dwell — no extra tapping — and
+  batched into per-ayah coverage over the 6236 global ayah numbers.
+- Khatmah percentage derived from that coverage, and a daily reading streak bucketed
+  by the client's IANA timezone (so an evening session counts for that evening).
+
+**Settings**
+
+- Translation edition, reciter, font size, and theme
+  (light / dark / system), synced to the account and mirrored to `localStorage`
+  for guests. Failed writes surface a notification instead of silently reverting.
 
 ## Stack
 
@@ -21,7 +57,7 @@ TanStack Query. Per-ayah audio streams from the Islamic Network CDN. The backend
 ## Project layout
 
 ```
-server/   Express API — feature modules (auth, bookmarks, settings)
+server/   Express API — feature modules (auth, bookmarks, settings, progress)
 client/   Vite React app — features mirror backend domains 1:1
 legacy/   the original 2022 static site (reference only)
 ```
@@ -63,10 +99,13 @@ GET    /api/bookmarks/check?surah=&ayah=      (auth)
 DELETE /api/bookmarks/:id                     (auth)
 GET    /api/settings                          (auth)
 PUT    /api/settings                          (auth)
+GET    /api/progress                           (auth)
+POST   /api/progress/ayahs                     (auth)
+PUT    /api/progress/last-read                 (auth)
 ```
 
-Unauthenticated users can read and listen fully; bookmarks and cross-device settings
-sync require an account. Guests fall back to `localStorage`.
+Unauthenticated users can read and listen fully; bookmarks, cross-device settings sync,
+and reading progress require an account. Guests fall back to `localStorage`.
 
 ## Deployment
 
@@ -85,7 +124,10 @@ The frontend's `VITE_API_URL` is baked at build time (pointing at the live API a
   published at 128kbps; the other reciters exist only at 64kbps. See
   `client/src/utils/constants.ts` (`RECITER_BITRATE`). Reciters are limited to those
   present in AlQuran.cloud's per-ayah audio catalog.
-- Search filters the surah list by name, meaning, or number (client-side); it does not
-  full-text search translations.
+- Verse search runs against the **active translation edition only**, not the Arabic
+  text, via AlQuran.cloud's `/search/{query}/all/{edition}`. Surah-name matching stays
+  client-side over the 114-surah list.
+- Repeat mode and playback speed are session-only — they live in `PlayerContext` and
+  reset on reload; neither is stored on the settings document.
 - Bismillah renders as a header for every surah except Al-Fatiha (1, where it is ayah 1)
   and At-Tawba (9, which has none).
