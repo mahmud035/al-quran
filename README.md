@@ -109,7 +109,7 @@ and reading progress require an account. Guests fall back to `localStorage`.
 
 ## Deployment
 
-Both services are containerized and deployed automatically via GitHub Actions on push to `master`:
+Both services are containerized and deployed automatically via GitHub Actions on push to `main`:
 
 - **Path-filtered builds** — the workflow diffs the push and rebuilds only the service (`client/` or `server/`) that actually changed (both on first push or manual dispatch).
 - **Images → GHCR** — `ghcr.io/mahmud035/quran-client` (Vite build served by nginx) and `ghcr.io/mahmud035/quran-server` (`tsc` → Node), tagged `latest` + commit SHA, with GitHub Actions layer caching.
